@@ -390,7 +390,7 @@ body.printing-book #book-container{ display:block; }
   body{ background:#fff; }
   .main{ width:100%; }
   .content, #book-container{ max-width:100%; padding:0; margin:0; }
-  .doc-code-badge{ background:#fff !important; color:#000 !important; border:1px solid #000; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .doc-code-badge{ background:none !important; border:none !important; color:#000 !important; padding:0 !important; font-weight:700; }
   .gold-box{ background:#f5f5f5 !important; border-color:#999 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .gold-box .gold-title{ color:#000 !important; }
   th{ background:#eee !important; color:#000 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
@@ -403,7 +403,13 @@ body.printing-book #book-container{ display:block; }
   .book-section{ break-before:page; page-break-before:always; }
   .book-cover{ break-after:page; page-break-after:always; }
   .book-toc{ break-after:page; page-break-after:always; }
-  .crumb{ display:none; }
+  .crumb{ display:none !important; }
+  .doc-nav{ display:none !important; }
+  .note-box{ display:none !important; }
+  .pill[class*="status-"]{ display:none !important; }
+  .pill:not([class*="status-"]){ background:none !important; border:none !important; padding:0 !important; margin-right:18px !important; color:#333 !important; font-size:11px; border-radius:0; }
+  .doc-meta-row{ margin-bottom:20px !important; }
+  .form-badge{ background:none !important; border:none !important; color:#000 !important; padding:0 !important; font-weight:700; font-size:11px; }
 }
 </style>
 </head>
