@@ -465,6 +465,7 @@ DATA.foundational.forEach(f=>{
 DATA.meta.forEach(m=>{
   reg('meta:'+m.code, {type:'meta', data:m});
 });
+reg('grp:fondasi', {type:'fondasi-group'});
 DATA.kelompok.forEach(g=>{
   reg('grp:'+g.key, {type:'kelompok-group', data:g});
   g.items.forEach(it=>{
@@ -607,19 +608,23 @@ function printBtnHtml(){
 function renderFoundational(f){
   const v = f.versions[0];
   if(!v){ $content.innerHTML = renderMissingState(f.code, f.code, ''); return; }
-  let html = `<div class="crumb"><a href="#" data-home="1">L21OS</a> / Fondasi &amp; Tata Kelola</div>`;
+  let html = `<div class="crumb"><a href="#" data-home="1">L21OS</a> / <span data-nav-id="grp:fondasi" style="cursor:pointer;text-decoration:underline;">Fondasi &amp; Tata Kelola</span></div>`;
   html += `<div class="doc-header"><div class="doc-header-main"><div class="doc-code-badge">${esc(f.code)}</div>
     <h1 class="doc-title">${esc(v.title)}</h1></div>${printBtnHtml()}</div>`;
   html += renderDocBody(v);
+  const idx = fondasiFlatList.findIndex(x=>x.navId==='fnd:'+f.code);
+  html += fondasiNavHtml(idx);
   $content.innerHTML = html;
 }
 
 function renderMeta(m){
   const v = m.versions[0];
-  let html = `<div class="crumb"><a href="#" data-home="1">L21OS</a> / Fondasi &amp; Tata Kelola</div>`;
+  let html = `<div class="crumb"><a href="#" data-home="1">L21OS</a> / <span data-nav-id="grp:fondasi" style="cursor:pointer;text-decoration:underline;">Fondasi &amp; Tata Kelola</span></div>`;
   html += `<div class="doc-header"><div class="doc-header-main"><div class="doc-code-badge">${esc(v.meta['Kode Dokumen']||m.code)}</div>
     <h1 class="doc-title">${esc(v.title)}</h1></div>${printBtnHtml()}</div>`;
   html += renderDocBody(v);
+  const idx = fondasiFlatList.findIndex(x=>x.navId==='meta:'+m.code);
+  html += fondasiNavHtml(idx);
   $content.innerHTML = html;
 }
 
@@ -674,6 +679,62 @@ const kelompokFlatList = [];
 DATA.kelompok.forEach(g=>{
   g.items.forEach(it=>{ kelompokFlatList.push({code: it.code, official_title: it.official_title, group: g}); });
 });
+
+const fondasiFlatList = [];
+DATA.foundational.forEach(f=>{
+  const v = f.versions[0];
+  if(v) fondasiFlatList.push({navId:'fnd:'+f.code, code:f.code, title:v.title.split(' — ')[0]});
+});
+DATA.meta.forEach(m=>{
+  const v = m.versions[0];
+  const codeLabel = m.code.split(' ')[0];
+  if(v) fondasiFlatList.push({navId:'meta:'+m.code, code:codeLabel, title:v.title});
+});
+
+function findKelItem(code){
+  for(const g of DATA.kelompok){
+    const found = g.items.find(it=>it.code===code);
+    if(found) return {item:found, group:g};
+  }
+  return null;
+}
+
+const WAJIB_BARU = ['SL21-202'];
+const WAJIB_SEMUA = ['SL21-101','SL21-102','SL21-104','SL21-105','SL21-204','SL21-206','SL21-207','SL21-208','SL21-301','SL21-302','SL21-303','SL21-805'];
+
+function fondasiNavHtml(idx){
+  let nextHtml = '';
+  if(idx>=0 && idx<fondasiFlatList.length-1){
+    const nextItem = fondasiFlatList[idx+1];
+    nextHtml = `<button class="docnav-btn next" data-nav-id="${nextItem.navId}">${esc(nextItem.code)} — ${esc(nextItem.title)} <span class="arrow">→</span></button>`;
+  } else if(idx===fondasiFlatList.length-1 && kelompokFlatList.length){
+    const first = kelompokFlatList[0];
+    nextHtml = `<button class="docnav-btn next" data-nav-id="kel:${esc(first.code)}">${esc(first.code)} — ${esc(first.official_title)} <span class="arrow">→</span></button>`;
+  }
+  return `<div class="doc-nav">
+    <button class="docnav-btn back" data-nav-id="grp:fondasi"><span class="arrow">←</span> Kembali ke Fondasi &amp; Tata Kelola</button>
+    ${nextHtml}
+  </div>`;
+}
+
+function renderFondasiLanding(){
+  let html = `<div class="crumb"><a href="#" data-home="1">L21OS</a> / Fondasi &amp; Tata Kelola</div>`;
+  html += `<div class="hero" style="margin-bottom:6px;">
+    <div class="eyebrow">Fondasi &amp; Tata Kelola</div>
+    <h1 style="font-size:30px;">Dokumen Induk Lorongsatu21</h1>
+    <p class="lede" style="margin-bottom:10px;">${fondasiFlatList.length} dokumen — Piagam, Anggaran Dasar, Kebijakan Perusahaan, Sistem Pengembangan Anggota Tim, Daftar Standar Resmi, dan Master Standar.</p>
+  </div>`;
+  html += `<div class="std-list">`;
+  fondasiFlatList.forEach(item=>{
+    html += `<div class="std-row" data-nav-id="${item.navId}">
+      <span class="dot ok"></span>
+      <span class="code">${esc(item.code)}</span>
+      <span class="ttl">${esc(item.title)}</span>
+    </div>`;
+  });
+  html += `</div>`;
+  $content.innerHTML = html;
+}
 
 function renderKelompokItem(it, group){
   if(it.status==='missing'){
@@ -775,6 +836,11 @@ function renderHome(){
   </div>`;
 
   html += `<div class="section-title">Kelompok Standar</div><div class="kelompok-grid">`;
+  html += `<div class="kelompok-card" data-goto-sec="fondasi">
+      <div class="kk">FONDASI</div>
+      <div class="kn">Fondasi &amp; Tata Kelola</div>
+      <div class="kstat"><span>${fondasiFlatList.length} dokumen</span></div>
+    </div>`;
   DATA.kelompok.forEach(g=>{
     const ok = g.items.filter(i=>i.status==='ok').length;
     const missing = g.items.filter(i=>i.status==='missing').length;
@@ -791,33 +857,27 @@ function renderHome(){
   });
   html += `</div>`;
 
-  html += `<div class="section-title">Daftar Isi Lengkap</div>`;
+  html += `<div class="section-title">Daftar SOP Wajib bagi Anggota Tim</div>
+  <p class="lede" style="margin:-6px 0 14px;font-size:13px;">Standar inti yang wajib dipahami setiap Anggota Tim, di luar SOP unit kerja masing-masing.</p>`;
 
   html += `<div class="toc-full-kelompok"><div class="tk-head">
-      <span class="tk-name">Fondasi &amp; Tata Kelola</span>
-      <span class="tk-count">${DATA.foundational.length + DATA.meta.length} dokumen</span>
+      <span class="tk-name">🆕 Karyawan Baru — Mulai dari Sini</span>
     </div><div class="std-list">`;
-  DATA.foundational.forEach(f=>{
-    const v = f.versions[0];
-    if(!v) return;
-    html += `<div class="std-row" data-nav-id="fnd:${esc(f.code)}"><span class="dot ok"></span><span class="code">${esc(f.code)}</span><span class="ttl">${esc(v.title.split(' — ')[0])}</span></div>`;
-  });
-  DATA.meta.forEach(m=>{
-    const codeLabel = m.code.split(' ')[0];
-    html += `<div class="std-row" data-nav-id="meta:${esc(m.code)}"><span class="dot ok"></span><span class="code">${esc(codeLabel)}</span><span class="ttl">${esc(m.label.replace(/^SL21-\d+\s*—\s*/,''))}</span></div>`;
+  WAJIB_BARU.forEach(code=>{
+    const found = findKelItem(code);
+    if(found) html += `<div class="std-row" data-nav-id="kel:${esc(code)}">${statusDot(found.item.status)}<span class="code">${esc(code)}</span><span class="ttl">${esc(found.item.official_title)}</span></div>`;
   });
   html += `</div></div>`;
 
-  DATA.kelompok.forEach(g=>{
-    html += `<div class="toc-full-kelompok"><div class="tk-head" data-nav-id="grp:${g.key}">
-        <span class="tk-kk">KELOMPOK ${g.key}</span><span class="tk-name">${esc(g.name)}</span>
-        <span class="tk-count">${g.items.length} standar</span>
-      </div><div class="std-list">`;
-    g.items.forEach(it=>{
-      html += `<div class="std-row" data-nav-id="kel:${esc(it.code)}">${statusDot(it.status)}<span class="code">${esc(it.code)}</span><span class="ttl">${esc(it.official_title)}</span></div>`;
-    });
-    html += `</div></div>`;
+  html += `<div class="toc-full-kelompok"><div class="tk-head">
+      <span class="tk-name">Wajib untuk Semua Anggota Tim</span>
+      <span class="tk-count">${WAJIB_SEMUA.length} standar</span>
+    </div><div class="std-list">`;
+  WAJIB_SEMUA.forEach(code=>{
+    const found = findKelItem(code);
+    if(found) html += `<div class="std-row" data-nav-id="kel:${esc(code)}">${statusDot(found.item.status)}<span class="code">${esc(code)}</span><span class="ttl">${esc(found.item.official_title)}</span></div>`;
   });
+  html += `</div></div>`;
 
   const gaps = [];
   const dups = [];
@@ -983,6 +1043,7 @@ function navigateTo(id){
   else if(entry.type==='meta') renderMeta(entry.data);
   else if(entry.type==='kelompok-item') renderKelompokItem(entry.data, entry.group);
   else if(entry.type==='kelompok-group') renderKelompokLanding(entry.data);
+  else if(entry.type==='fondasi-group') renderFondasiLanding();
   else if(entry.type==='orphan') renderOrphan(entry.data);
   else if(entry.type==='formulir') renderFormulir(entry.data, entry.parent);
 }
